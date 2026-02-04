@@ -6,8 +6,9 @@
 //! ## Features
 //!
 //! - **Secret Registry**: Register sensitive values that should never appear in output
-//! - **Output Scrubbing**: Automatically replace registered secrets with `[REDACTED]`
+//! - **Output Scrubbing**: Automatically replace registered secrets with `<secret:name>` or `[REDACTED]`
 //! - **Encoding-Aware**: Detects secrets in common encodings (base64, hex)
+//! - **Broker Client**: Connect to the SEKS broker to fetch secrets
 //!
 //! ## Design Philosophy
 //!
@@ -23,15 +24,15 @@
 //! ## Usage
 //!
 //! ```rust
-//! use nu_seks::{register_secret, scrub_output, clear_secrets};
+//! use nu_seks::{register_named_secret, scrub_output, clear_secrets};
 //!
-//! // Register a secret token
-//! register_secret("my-api-token-12345");
+//! // Register a named secret token
+//! register_named_secret("api_token", "my-api-token-12345");
 //!
 //! // Any output containing the secret will be scrubbed
 //! let output = "Response: my-api-token-12345";
 //! let scrubbed = scrub_output(output);
-//! assert_eq!(scrubbed, "Response: [REDACTED]");
+//! assert_eq!(scrubbed, "Response: <secret:api_token>");
 //!
 //! // Also works with base64-encoded version
 //! let encoded = "bXktYXBpLXRva2VuLTEyMzQ1"; // base64 of the token
@@ -40,20 +41,28 @@
 //! // The encoded version is also redacted
 //! ```
 
+mod broker;
 mod registry;
 mod scrubber;
 mod writer;
 
-pub use registry::{clear_secrets, register_secret, secret_count, SecretRegistry, GLOBAL_REGISTRY};
+pub use broker::{BrokerClient, BrokerError};
+pub use registry::{
+    clear_secrets, register_named_secret, register_secret, secret_count, SecretRegistry,
+    GLOBAL_REGISTRY,
+};
 pub use scrubber::{scrub_bytes, scrub_bytes_with_registry, scrub_output, scrub_output_with_registry};
 pub use writer::ScrubWriter;
 
-/// The redaction marker used to replace secrets in output
+/// The default redaction marker used to replace anonymous secrets in output
 pub const REDACTION_MARKER: &str = "[REDACTED]";
 
 /// Minimum length for a secret to be registered.
 /// Shorter strings would cause too many false positives.
 pub const MIN_SECRET_LENGTH: usize = 4;
+
+/// Default path for the broker socket
+pub const DEFAULT_BROKER_SOCKET: &str = "~/.seksh/broker.sock";
 
 #[cfg(test)]
 mod tests {
@@ -137,6 +146,18 @@ mod tests {
         let output = scrub_output(input);
 
         assert_eq!(output, "Contains [REDACTED] here");
+        clear_secrets();
+    }
+
+    #[test]
+    fn test_named_secret() {
+        clear_secrets();
+        register_named_secret("test_token", "my-secret-value");
+
+        let input = "Token: my-secret-value";
+        let output = scrub_output(input);
+
+        assert_eq!(output, "Token: <secret:test_token>");
         clear_secrets();
     }
 }

@@ -4154,6 +4154,7 @@ dependencies = [
  "nu-cmd-extra",
  "nu-cmd-lang",
  "nu-cmd-plugin",
+ "nu-cmd-seks",
  "nu-command",
  "nu-engine",
  "nu-experimental",
@@ -4166,6 +4167,7 @@ dependencies = [
  "nu-plugin-engine",
  "nu-plugin-protocol",
  "nu-protocol",
+ "nu-seks",
  "nu-std",
  "nu-system",
  "nu-test-support",
@@ -4295,6 +4297,15 @@ dependencies = [
  "nu-path",
  "nu-plugin-engine",
  "nu-protocol",
+]
+
+[[package]]
+name = "nu-cmd-seks"
+version = "0.110.1"
+dependencies = [
+ "nu-engine",
+ "nu-protocol",
+ "nu-seks",
 ]
 
 [[package]]
@@ -7426,6 +7437,14 @@ checksum = "fa39c7303dc58b5543c94d22c1766b0d31f2ee58306363ea622b10bbc075eaa2"
 dependencies = [
  "core-foundation-sys",
  "libc",
+]
+
+[[package]]
+name = "seks-broker"
+version = "0.110.1"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

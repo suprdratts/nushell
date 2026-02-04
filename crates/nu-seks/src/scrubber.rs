@@ -1,15 +1,14 @@
 //! Output Scrubber - Replace secrets with redaction markers
 //!
 //! The scrubber performs string replacement of all registered secrets and their
-//! encoded variants with a redaction marker `[REDACTED]`.
+//! encoded variants with redaction markers like `[REDACTED]` or `<secret:name>`.
 
 use crate::registry::{SecretRegistry, GLOBAL_REGISTRY};
-use crate::REDACTION_MARKER;
 
 /// Scrub output using the global secret registry.
 ///
 /// Replaces all occurrences of registered secrets (and their encoded variants)
-/// with `[REDACTED]`.
+/// with their appropriate redaction markers.
 ///
 /// # Arguments
 /// * `output` - The output string to scrub
@@ -54,15 +53,15 @@ pub fn scrub_output_with_registry(output: &str, registry: &SecretRegistry) -> St
         return output.to_string();
     }
 
-    // Get patterns sorted by length (longest first)
+    // Get patterns with their markers, sorted by length (longest first)
     // This ensures we replace "my-long-secret" before "secret" if both are registered
-    let patterns = registry.patterns();
+    let patterns = registry.patterns_with_markers();
 
     let mut result = output.to_string();
-    for pattern in patterns {
+    for (pattern, marker) in patterns {
         // Only replace if pattern is non-empty (safety check)
         if !pattern.is_empty() {
-            result = result.replace(&pattern, REDACTION_MARKER);
+            result = result.replace(&pattern, &marker);
         }
     }
 
@@ -199,5 +198,26 @@ mod tests {
         let input = "export API_KEY=supersecret123";
         let output = scrub_output_with_registry(input, &registry);
         assert_eq!(output, "export API_KEY=[REDACTED]");
+    }
+
+    #[test]
+    fn test_named_secret_scrubbing() {
+        let registry = SecretRegistry::new();
+        registry.register_named("github_token", "ghp_abc123xyz");
+
+        let input = "Token: ghp_abc123xyz";
+        let output = scrub_output_with_registry(input, &registry);
+        assert_eq!(output, "Token: <secret:github_token>");
+    }
+
+    #[test]
+    fn test_mixed_named_and_anonymous() {
+        let registry = SecretRegistry::new();
+        registry.register_named("api_key", "sk-1234567890");
+        registry.register("anonymous-secret");
+
+        let input = "API: sk-1234567890, Other: anonymous-secret";
+        let output = scrub_output_with_registry(input, &registry);
+        assert_eq!(output, "API: <secret:api_key>, Other: [REDACTED]");
     }
 }

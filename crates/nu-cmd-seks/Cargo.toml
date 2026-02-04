@@ -1,0 +1,19 @@
+[package]
+name = "nu-cmd-seks"
+version = "0.110.1"
+authors = ["The Nushell Project Developers", "SEKS Project Contributors"]
+description = "SEKS commands for nushell"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/rotcsgame/seksh/tree/main/crates/nu-cmd-seks"
+
+[lib]
+bench = false
+
+[dependencies]
+nu-engine = { path = "../nu-engine", version = "0.110.1" }
+nu-protocol = { path = "../nu-protocol", version = "0.110.1" }
+nu-seks = { path = "../nu-seks", version = "0.110.1" }
+
+[lints]
+workspace = true

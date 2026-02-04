@@ -31,6 +31,8 @@ ProductName = "Nushell"
 
 [workspace]
 members = [
+  "crates/seks-broker",
+  "crates/nu-cmd-seks",
   "crates/nu_plugin_custom_values",
   "crates/nu_plugin_example",
   "crates/nu_plugin_formats",
@@ -245,6 +247,8 @@ nu-protocol = { path = "./crates/nu-protocol", version = "0.110.1" }
 nu-std = { path = "./crates/nu-std", version = "0.110.1" }
 nu-system = { path = "./crates/nu-system", version = "0.110.1" }
 nu-utils = { path = "./crates/nu-utils", version = "0.110.1" }
+nu-seks = { path = "./crates/nu-seks", version = "0.110.1" }
+nu-cmd-seks = { path = "./crates/nu-cmd-seks", version = "0.110.1" }
 nu-mcp = { path = "./crates/nu-mcp", version = "0.110.1", optional = true }
 reedline = { workspace = true, features = ["bashisms"] }
 
