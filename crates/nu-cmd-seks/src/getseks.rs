@@ -1,4 +1,9 @@
 //! The `getseks` command - fetch a secret from the broker and register it for scrubbing
+//!
+//! ⚠️  DEPRECATED: This command exposes secrets to shell memory where they can be
+//! exfiltrated via string operations, file writes, or external commands.
+//!
+//! Use `seksh-http` instead for HTTP requests - it keeps secrets internal.
 
 use nu_engine::command_prelude::*;
 use nu_seks::{BrokerClient, register_named_secret};
@@ -12,7 +17,7 @@ impl Command for GetSeks {
     }
 
     fn description(&self) -> &str {
-        "Fetch a secret from the SEKS broker and register it for output scrubbing."
+        "⚠️ DEPRECATED: Fetch a secret (exposes to shell memory). Use seksh-http instead."
     }
 
     fn signature(&self) -> Signature {
