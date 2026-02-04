@@ -60,6 +60,7 @@ members = [
   "crates/nu-plugin",
   "crates/nu-pretty-hex",
   "crates/nu-protocol",
+  "crates/nu-seks",
   "crates/nu-std",
   "crates/nu-system",
   "crates/nu-table",

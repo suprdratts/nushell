@@ -2,12 +2,18 @@
 //!
 //! This module also handles conversions the [`ShellError`] <-> [`io::Error`](std::io::Error),
 //! so remember the usage of [`ShellErrorBridge`] where applicable.
+//!
+//! # SEKS Security
+//!
+//! All output through this module is scrubbed for registered secrets before
+//! being written to stdout/stderr. See `nu-seks` for details.
 #[cfg(feature = "os")]
 use crate::process::{ChildPipe, ChildProcess};
 use crate::{
     IntRange, PipelineData, ShellError, Signals, Span, Type, Value,
     shell_error::{bridge::ShellErrorBridge, io::IoError},
 };
+use nu_seks::ScrubWriter;
 use nu_utils::SplitRead as SplitReadInner;
 use serde::{Deserialize, Serialize};
 use std::ops::Bound;
@@ -693,11 +699,19 @@ impl ByteStream {
     }
 
     /// Print all bytes of the [`ByteStream`] to stdout or stderr.
+    ///
+    /// # SEKS Security
+    /// Output is automatically scrubbed for registered secrets before being
+    /// written to the terminal. This helps prevent accidental token exposure
+    /// in command output.
     pub fn print(self, to_stderr: bool) -> Result<(), ShellError> {
+        // SEKS: Wrap stdout/stderr in ScrubWriter for automatic secret scrubbing
         if to_stderr {
-            self.write_to(&mut io::stderr())
+            let mut scrub_writer = ScrubWriter::new(io::stderr());
+            self.write_to(&mut scrub_writer)
         } else {
-            self.write_to(&mut io::stdout())
+            let mut scrub_writer = ScrubWriter::new(io::stdout());
+            self.write_to(&mut scrub_writer)
         }
     }
 

@@ -4705,6 +4705,7 @@ dependencies = [
  "nu-experimental",
  "nu-glob",
  "nu-path",
+ "nu-seks",
  "nu-system",
  "nu-test-support",
  "nu-utils",
@@ -4723,6 +4724,16 @@ dependencies = [
  "web-time",
  "windows 0.62.1",
  "windows-sys 0.61.0",
+]
+
+[[package]]
+name = "nu-seks"
+version = "0.110.1"
+dependencies = [
+ "base64 0.22.1",
+ "once_cell",
+ "parking_lot",
+ "pretty_assertions",
 ]
 
 [[package]]
