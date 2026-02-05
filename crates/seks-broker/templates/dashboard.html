@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SEKS Broker{% endblock %}
+
+{% block body %}
+<nav>
+    <div class="container">
+        <div class="logo"><span>SEKS</span> Broker</div>
+        <ul>
+            <li><a href="/dashboard" class="active">Dashboard</a></li>
+            <li><a href="/secrets">Secrets</a></li>
+            <li><a href="/agents">Agents</a></li>
+            <li><a href="/activity">Activity</a></li>
+        </ul>
+        <form method="POST" action="/logout" style="margin: 0;">
+            <button type="submit" class="btn btn-ghost btn-sm">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<main>
+    <div class="container">
+        <h1>Welcome, {{ client_name }}</h1>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">{{ secret_count }}</div>
+                <div class="stat-label">Secrets</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ agent_count }}</div>
+                <div class="stat-label">Agents</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Recent Activity</h2>
+                <a href="/activity" class="btn btn-ghost btn-sm">View All</a>
+            </div>
+            
+            {% if recent_activity.is_empty() %}
+            <div class="empty">
+                <p>No activity yet</p>
+            </div>
+            {% else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in recent_activity %}
+                    <tr>
+                        <td class="text-muted">{{ entry.created_at.format("%H:%M:%S") }}</td>
+                        <td>{{ entry.action }}</td>
+                        <td>{{ entry.resource.as_deref().unwrap_or("-") }}</td>
+                        <td>
+                            {% if entry.status == "success" %}
+                            <span class="badge badge-success">success</span>
+                            {% else %}
+                            <span class="badge badge-muted">{{ entry.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        
+        <div class="card">
+            <h2>Quick Start</h2>
+            <ol style="padding-left: 1.5rem; color: var(--text-muted);">
+                <li style="margin-bottom: 0.5rem;">
+                    <strong style="color: var(--text);">Add your API keys</strong> — 
+                    Go to <a href="/secrets">Secrets</a> and add your Claude/OpenAI keys
+                </li>
+                <li style="margin-bottom: 0.5rem;">
+                    <strong style="color: var(--text);">Create an agent</strong> — 
+                    Go to <a href="/agents">Agents</a> and create a token for your AI agent
+                </li>
+                <li style="margin-bottom: 0.5rem;">
+                    <strong style="color: var(--text);">Use the API</strong> — 
+                    Your agent can now access secrets via the REST API
+                </li>
+            </ol>
+        </div>
+    </div>
+</main>
+{% endblock %}

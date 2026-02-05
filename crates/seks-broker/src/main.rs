@@ -1,189 +1,144 @@
-//! SEKS Broker - Secret Management Daemon
+//! SEKS Broker - Cloud-native secret management for AI agents
 //!
-//! A simple daemon that:
-//! - Reads secrets from ~/.seksh/secrets.json
-//! - Listens on Unix socket ~/.seksh/broker.sock
-//! - Responds to get/list requests over JSON protocol
+//! A REST service that:
+//! - Stores client API keys (encrypted at rest)
+//! - Provides secrets to authenticated agents
+//! - Proxies requests with credential injection
+//! - Offers a web UI for key management
 
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::fs;
-use std::io::{BufRead, BufReader, Write};
-use std::os::unix::net::{UnixListener, UnixStream};
-use std::path::PathBuf;
-use std::sync::Arc;
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Router,
+};
+use clap::Parser;
+use std::{net::SocketAddr, sync::Arc};
+use tokio::net::TcpListener;
+use tower_http::cors::CorsLayer;
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-/// Request from client
-#[derive(Debug, Deserialize)]
-struct Request {
-    cmd: String,
-    #[serde(default)]
-    name: String,
+mod api;
+mod auth;
+mod crypto;
+mod db;
+mod web;
+
+pub use db::Database;
+
+/// SEKS Broker - Secret management for AI agents
+#[derive(Parser, Debug)]
+#[command(name = "seks-broker")]
+#[command(about = "Cloud-native secret management for AI agents")]
+struct Args {
+    /// Address to bind to
+    #[arg(short, long, default_value = "127.0.0.1:9443")]
+    addr: String,
+
+    /// Database path
+    #[arg(short, long, default_value = "~/.seks/broker.db")]
+    database: String,
+
+    /// Master encryption key (hex-encoded, 32 bytes)
+    /// In production, this should come from KMS/HSM
+    #[arg(long, env = "SEKS_MASTER_KEY")]
+    master_key: Option<String>,
 }
 
-/// Response to client
-#[derive(Debug, Serialize)]
-#[serde(untagged)]
-enum Response {
-    Value { value: String },
-    Names { names: Vec<String> },
-    Error { error: String },
+/// Shared application state
+#[derive(Clone)]
+pub struct AppState {
+    pub db: Arc<Database>,
+    pub crypto: Arc<crypto::Crypto>,
 }
 
-fn get_seksh_dir() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-    PathBuf::from(home).join(".seksh")
-}
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // Initialize tracing
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::new(
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "seks_broker=info,tower_http=debug".into()),
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
-fn load_secrets(path: &PathBuf) -> HashMap<String, String> {
-    match fs::read_to_string(path) {
-        Ok(content) => match serde_json::from_str(&content) {
-            Ok(secrets) => secrets,
-            Err(e) => {
-                eprintln!("Failed to parse secrets.json: {}", e);
-                HashMap::new()
+    // Load .env if present
+    let _ = dotenvy::dotenv();
+
+    // Parse CLI args
+    let args = Args::parse();
+
+    // Expand ~ in database path
+    let db_path = shellexpand::tilde(&args.database).to_string();
+    
+    // Ensure parent directory exists
+    if let Some(parent) = std::path::Path::new(&db_path).parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
+    // Initialize or generate master key
+    let master_key = match args.master_key {
+        Some(key) => {
+            let bytes = hex::decode(&key)?;
+            if bytes.len() != 32 {
+                anyhow::bail!("Master key must be 32 bytes (64 hex characters)");
             }
-        },
-        Err(e) => {
-            eprintln!("Failed to read secrets.json: {}", e);
-            eprintln!("Create ~/.seksh/secrets.json with your secrets");
-            HashMap::new()
+            let mut arr = [0u8; 32];
+            arr.copy_from_slice(&bytes);
+            arr
         }
-    }
-}
-
-fn handle_client(mut stream: UnixStream, secrets: &HashMap<String, String>) {
-    let peer = stream
-        .peer_addr()
-        .map(|a| format!("{:?}", a))
-        .unwrap_or_else(|_| "unknown".to_string());
-    eprintln!("Client connected: {}", peer);
-
-    let reader = BufReader::new(stream.try_clone().expect("Failed to clone stream"));
-
-    for line in reader.lines() {
-        let line = match line {
-            Ok(l) => l,
-            Err(e) => {
-                eprintln!("Failed to read from client: {}", e);
-                break;
-            }
-        };
-
-        if line.is_empty() {
-            continue;
-        }
-
-        let response = match serde_json::from_str::<Request>(&line) {
-            Ok(req) => handle_request(&req, secrets),
-            Err(e) => Response::Error {
-                error: format!("Invalid request: {}", e),
-            },
-        };
-
-        let response_json = serde_json::to_string(&response).unwrap_or_else(|_| {
-            r#"{"error":"Failed to serialize response"}"#.to_string()
-        });
-
-        if let Err(e) = writeln!(stream, "{}", response_json) {
-            eprintln!("Failed to write response: {}", e);
-            break;
-        }
-
-        if let Err(e) = stream.flush() {
-            eprintln!("Failed to flush: {}", e);
-            break;
-        }
-    }
-
-    eprintln!("Client disconnected: {}", peer);
-}
-
-fn handle_request(req: &Request, secrets: &HashMap<String, String>) -> Response {
-    match req.cmd.as_str() {
-        "get" => {
-            if req.name.is_empty() {
-                return Response::Error {
-                    error: "Missing 'name' field".to_string(),
-                };
-            }
-
-            match secrets.get(&req.name) {
-                Some(value) => Response::Value {
-                    value: value.clone(),
-                },
-                None => Response::Error {
-                    error: format!("Secret '{}' not found", req.name),
-                },
-            }
-        }
-        "list" => {
-            let names: Vec<String> = secrets.keys().cloned().collect();
-            Response::Names { names }
-        }
-        _ => Response::Error {
-            error: format!("Unknown command: {}", req.cmd),
-        },
-    }
-}
-
-fn main() {
-    let seksh_dir = get_seksh_dir();
-    let secrets_path = seksh_dir.join("secrets.json");
-    let socket_path = seksh_dir.join("broker.sock");
-
-    // Ensure directory exists
-    if let Err(e) = fs::create_dir_all(&seksh_dir) {
-        eprintln!("Failed to create ~/.seksh directory: {}", e);
-        std::process::exit(1);
-    }
-
-    // Load secrets
-    eprintln!("Loading secrets from: {}", secrets_path.display());
-    let secrets = Arc::new(load_secrets(&secrets_path));
-    eprintln!("Loaded {} secrets", secrets.len());
-
-    // Remove old socket if it exists
-    if socket_path.exists() {
-        if let Err(e) = fs::remove_file(&socket_path) {
-            eprintln!("Failed to remove old socket: {}", e);
-            std::process::exit(1);
-        }
-    }
-
-    // Create the socket
-    let listener = match UnixListener::bind(&socket_path) {
-        Ok(l) => l,
-        Err(e) => {
-            eprintln!("Failed to bind socket: {}", e);
-            std::process::exit(1);
+        None => {
+            tracing::warn!("No master key provided, generating ephemeral key");
+            tracing::warn!("Data will not persist across restarts!");
+            crypto::Crypto::generate_key()
         }
     };
 
-    // Set socket permissions (owner only)
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        if let Err(e) = fs::set_permissions(&socket_path, fs::Permissions::from_mode(0o600)) {
-            eprintln!("Warning: Failed to set socket permissions: {}", e);
-        }
-    }
+    // Initialize crypto
+    let crypto = Arc::new(crypto::Crypto::new(master_key));
 
-    eprintln!("SEKS Broker listening on: {}", socket_path.display());
-    eprintln!("Press Ctrl+C to stop");
+    // Initialize database
+    tracing::info!("Opening database at {}", db_path);
+    let db = Arc::new(Database::new(&db_path).await?);
+    db.migrate().await?;
 
-    // Handle incoming connections
-    for stream in listener.incoming() {
-        match stream {
-            Ok(stream) => {
-                let secrets = Arc::clone(&secrets);
-                std::thread::spawn(move || {
-                    handle_client(stream, &secrets);
-                });
-            }
-            Err(e) => {
-                eprintln!("Failed to accept connection: {}", e);
-            }
-        }
-    }
+    // Create app state
+    let state = AppState { db, crypto };
+
+    // Build router
+    let app = Router::new()
+        // API routes
+        .route("/v1/health", get(api::health))
+        .route("/v1/secrets/get", post(api::secrets_get))
+        .route("/v1/secrets/list", post(api::secrets_list))
+        .route("/v1/proxy/request", post(api::proxy_request))
+        // Web UI routes
+        .route("/", get(web::index))
+        .route("/login", get(web::login_page).post(web::login_submit))
+        .route("/logout", post(web::logout))
+        .route("/dashboard", get(web::dashboard))
+        .route("/secrets", get(web::secrets_list))
+        .route("/secrets/add", get(web::secrets_add_page).post(web::secrets_add_submit))
+        .route("/secrets/:id/delete", post(web::secrets_delete))
+        .route("/agents", get(web::agents_list))
+        .route("/agents/add", post(web::agents_add))
+        .route("/agents/:id/delete", post(web::agents_delete))
+        .route("/activity", get(web::activity_log))
+        // Static files
+        .nest_service("/static", tower_http::services::ServeDir::new("static"))
+        // Middleware
+        .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::permissive())
+        .with_state(state);
+
+    // Start server
+    let addr: SocketAddr = args.addr.parse()?;
+    tracing::info!("SEKS Broker listening on http://{}", addr);
+    
+    let listener = TcpListener::bind(addr).await?;
+    axum::serve(listener, app).await?;
+
+    Ok(())
 }

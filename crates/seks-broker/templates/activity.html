@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Activity - SEKS Broker{% endblock %}
+
+{% block body %}
+<nav>
+    <div class="container">
+        <div class="logo"><span>SEKS</span> Broker</div>
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/secrets">Secrets</a></li>
+            <li><a href="/agents">Agents</a></li>
+            <li><a href="/activity" class="active">Activity</a></li>
+        </ul>
+        <form method="POST" action="/logout" style="margin: 0;">
+            <button type="submit" class="btn btn-ghost btn-sm">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<main>
+    <div class="container">
+        <h1>Activity Log</h1>
+        
+        <div class="card">
+            {% if entries.is_empty() %}
+            <div class="empty">
+                <p>No activity recorded yet</p>
+                <p class="text-muted">Activity will appear here when agents access your secrets</p>
+            </div>
+            {% else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Agent</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td class="text-muted">{{ entry.created_at.format("%Y-%m-%d %H:%M:%S") }}</td>
+                        <td>{{ entry.agent_id.as_deref().unwrap_or("-") }}</td>
+                        <td>{{ entry.action }}</td>
+                        <td>
+                            {% if let Some(res) = entry.resource.as_deref() %}
+                            <code class="token">{{ res }}</code>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if entry.status == "success" %}
+                            <span class="badge badge-success">success</span>
+                            {% else %}
+                            <span class="badge badge-muted">{{ entry.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+    </div>
+</main>
+{% endblock %}
