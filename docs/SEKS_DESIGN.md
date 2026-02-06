@@ -132,43 +132,42 @@ The actual secret value (for use in commands)
 
 ---
 
-## The Broker (MVP)
+## The Broker
 
-For MVP, the broker is minimal:
+The broker is a **separate service** (not embedded in seksh). We're using a 
+**Cloudflare Workers implementation** for cloud-native deployment:
+
+**Repository:** `~/seks-broker/` (TypeScript, Hono framework)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ BROKER MVP                                                  │
+│ SEKS BROKER (Cloudflare Workers)                            │
 │                                                             │
-│ - Reads secrets from a JSON file at startup                 │
-│ - Listens on Unix socket (~/.seksh/broker.sock)             │
-│ - Protocol: JSON-RPC over socket                            │
+│ - REST API with authentication                              │
+│ - Secrets encrypted at rest (AES-GCM)                       │
+│ - Multi-tenant (multiple agents, isolated secrets)          │
+│ - Web admin UI for secret management                        │
+│ - Audit logging                                             │
 │                                                             │
 │ Endpoints:                                                  │
-│   get_secret(name) → value                                  │
-│   list_secrets() → [names]  (no values!)                    │
+│   POST /v1/secrets/get    → fetch a secret                  │
+│   POST /v1/secrets/list   → list secret names               │
+│   POST /v1/proxy/request  → proxy request w/ cred injection │
 │                                                             │
-│ Security (MVP):                                             │
-│   - Socket permissions (owner only)                         │
-│   - Optional: token-based auth                              │
+│ Authentication:                                             │
+│   Bearer token per agent (seks_agent_...)                   │
 │                                                             │
-│ NOT in MVP:                                                 │
-│   - OS keychain integration                                 │
-│   - Encryption at rest                                      │
-│   - Audit logging                                           │
-│   - Secret rotation                                         │
+│ Deployment:                                                 │
+│   - Production: wrangler deploy                             │
+│   - Local dev: wrangler dev (localhost:8787)                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Secrets file format** (`~/.seksh/secrets.json`):
-```json
-{
-  "github_token": "ghp_abc123...",
-  "aws_access_key": "AKIA...",
-  "aws_secret_key": "...",
-  "openai_api_key": "sk-..."
-}
-```
+**Why Cloudflare Workers?**
+- No dependency conflicts with seksh shell
+- Cloud-native: runs anywhere, no server to manage
+- Built-in encryption, D1 database, audit logging
+- Local dev mode for offline/airgapped use
 
 ---
 
@@ -209,33 +208,37 @@ These require much more sophisticated defenses and are out of scope for SEKS MVP
 - [x] Create `nu-seks` crate
 - [x] Implement output scrubbing
 - [x] Base64/hex encoding detection
+- [x] Implement `getseks` built-in command
+- [x] Implement `listseks` (list available secrets without values)
 
-### Phase 2: getseks + Broker (THIS PR)
-- [ ] Implement `getseks` built-in command
-- [ ] Implement MVP broker (JSON file + Unix socket)
-- [ ] Wire `getseks` to broker
-- [ ] Register fetched secrets for scrubbing
+### Phase 2: Broker (IN PROGRESS)
+- [x] Cloudflare Workers broker (`~/seks-broker/`)
+- [x] REST API with bearer token auth
+- [x] Encrypted secrets at rest
+- [x] Web admin UI
+- [x] Audit logging
+- [ ] Deploy to production
+- [ ] Wire seksh to broker endpoint
 
-### Phase 3: Blessed Wrappers (FUTURE)
-- [ ] `curl` wrapper
-- [ ] `git` wrapper  
-- [ ] `aws` wrapper
-- [ ] `gh` wrapper
+### Phase 3: Wrapped Commands (NEXT)
+- [ ] `seksh-http` — HTTP requests with credential injection
+- [ ] `seksh-git` — git operations with credential injection
+- [ ] `seksh-curl` — curl wrapper (broker proxies request)
 
 ### Phase 4: Hardening (FUTURE)
-- [ ] OS keychain integration
-- [ ] Audit logging
+- [ ] OS keychain integration (optional backend)
 - [ ] Secret rotation support
-- [ ] More encoding detection
+- [ ] Rate limiting / anomaly detection
 
 ---
 
 ## Open Questions
 
-1. **Broker lifecycle**: Who starts the broker? Agent runner? Systemd?
-2. **Multi-agent**: One broker per agent, or shared?
+1. ~~**Broker lifecycle**: Who starts the broker?~~ → Cloud-hosted, always available
+2. ~~**Multi-agent**: One broker per agent, or shared?~~ → Shared, multi-tenant
 3. **Secret scoping**: Per-command secrets vs session-wide?
-4. **Failure mode**: What if broker is unavailable?
+4. **Failure mode**: What if broker is unavailable? (graceful degradation?)
+5. **Local dev**: How does seksh discover broker URL? (env var? config file?)
 
 ---
 
