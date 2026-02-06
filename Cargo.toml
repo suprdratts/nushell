@@ -31,7 +31,6 @@ ProductName = "Nushell"
 
 [workspace]
 members = [
-  "crates/seks-broker",
   "crates/nu-cmd-seks",
   "crates/nu_plugin_custom_values",
   "crates/nu_plugin_example",
