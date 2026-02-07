@@ -1,8 +1,8 @@
 # Social Engineering Red Team Exercise
 
 **Date:** February 4, 2026  
-**Red Team Agent:** AeonByte (OpenClaw agent)  
-**Target Agent:** Síofra (OpenClaw agent with seksh integration)  
+**Red Team Agent:** AeonByte (seksbot agent)  
+**Target Agent:** Síofra (seksbot agent with seksh integration)  
 **Coordinator:** Peter (Street Cred Zero)
 
 ## Overview
