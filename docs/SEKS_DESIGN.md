@@ -211,14 +211,14 @@ These require much more sophisticated defenses and are out of scope for SEKS MVP
 - [x] Implement `getseks` built-in command
 - [x] Implement `listseks` (list available secrets without values)
 
-### Phase 2: Broker (IN PROGRESS)
+### Phase 2: Broker (DONE)
 - [x] Cloudflare Workers broker (`~/seks-broker/`)
 - [x] REST API with bearer token auth
 - [x] Encrypted secrets at rest
 - [x] Web admin UI
 - [x] Audit logging
-- [ ] Deploy to production
-- [ ] Wire seksh to broker endpoint
+- [x] Deploy to production (https://seks-broker.stcredzero.workers.dev)
+- [x] Wire seksh to broker endpoint (HTTP client via ureq)
 
 ### Phase 3: Wrapped Commands (NEXT)
 - [ ] `seksh-http` — HTTP requests with credential injection
@@ -238,7 +238,22 @@ These require much more sophisticated defenses and are out of scope for SEKS MVP
 2. ~~**Multi-agent**: One broker per agent, or shared?~~ → Shared, multi-tenant
 3. **Secret scoping**: Per-command secrets vs session-wide?
 4. **Failure mode**: What if broker is unavailable? (graceful degradation?)
-5. **Local dev**: How does seksh discover broker URL? (env var? config file?)
+5. ~~**Local dev**: How does seksh discover broker URL?~~ → `SEKS_BROKER_URL` env var
+
+## Configuration
+
+Set these environment variables before using seksh:
+
+```bash
+export SEKS_BROKER_URL="https://seks-broker.stcredzero.workers.dev"
+export SEKS_AGENT_TOKEN="seks_agent_..."  # Get from broker web UI
+```
+
+For local development:
+```bash
+export SEKS_BROKER_URL="http://localhost:8787"
+# Run: cd ~/seks-broker && npm run dev
+```
 
 ---
 
