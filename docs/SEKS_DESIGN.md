@@ -220,9 +220,10 @@ These require much more sophisticated defenses and are out of scope for SEKS MVP
 - [x] Deploy to production (https://seks-broker.stcredzero.workers.dev)
 - [x] Wire seksh to broker endpoint (HTTP client via ureq)
 
-### Phase 3: Wrapped Commands (NEXT)
-- [ ] `seksh-http` — HTTP requests with credential injection
-- [ ] `seksh-git` — git operations with credential injection
+### Phase 3: Wrapped Commands (IN PROGRESS)
+- [x] `seksh-http` — HTTP requests with credential injection
+- [x] `seksh-git` — git operations with credential injection (token, user/pass, SSH key)
+- [ ] `seksh-aws` — AWS CLI with credential injection
 - [ ] `seksh-curl` — curl wrapper (broker proxies request)
 
 ### Phase 4: Hardening (FUTURE)
