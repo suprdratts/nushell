@@ -25,6 +25,10 @@ impl Command for ListSeks {
         r#"Lists the names of all secrets available in the SEKS broker.
 Only names are returned, never the actual secret values.
 
+ENVIRONMENT VARIABLES:
+  SEKS_BROKER_URL    - Broker URL (default: http://localhost:8787)
+  SEKS_AGENT_TOKEN   - Agent bearer token (required)
+
 This is useful for discovering what secrets are configured without
 exposing any sensitive data."#
     }

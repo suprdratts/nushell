@@ -28,15 +28,16 @@ impl Command for GetSeks {
     }
 
     fn extra_description(&self) -> &str {
-        r#"Fetches a secret value from the SEKS broker daemon. The secret is:
-1. Retrieved from the broker over a Unix socket
+        r#"Fetches a secret value from the SEKS broker. The secret is:
+1. Retrieved from the broker via HTTP REST API
 2. Registered for output scrubbing (any output containing the secret will show <secret:name> instead)
 3. Returned as a string for use in commands
 
-The broker must be running (seks-broker) and have the secret configured in ~/.seksh/secrets.json.
+ENVIRONMENT VARIABLES:
+  SEKS_BROKER_URL    - Broker URL (default: http://localhost:8787)
+  SEKS_AGENT_TOKEN   - Agent bearer token (required)
 
-This command is the core of SEKS shell's security model - it allows agents to use secrets
-in commands without ever seeing the actual secret values."#
+⚠️  WARNING: This command exposes secrets to shell memory. Prefer seksh-http for HTTP requests."#
     }
 
     fn run(

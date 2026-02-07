@@ -93,6 +93,10 @@ COMPARISON:
   # SAFE - secret never enters shell memory
   seksh-http get $url --auth-bearer github_token
 
+ENVIRONMENT VARIABLES:
+  SEKS_BROKER_URL    - Broker URL (default: http://localhost:8787)
+  SEKS_AGENT_TOKEN   - Agent bearer token (required)
+
 The response body is still scrubbed as defense-in-depth (in case an API
 echoes tokens back), but the primary security is that secrets never enter
 the shell at all."#

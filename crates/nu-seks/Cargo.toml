@@ -14,6 +14,9 @@ bench = false
 base64 = { workspace = true }
 once_cell = "1.18"
 parking_lot = "0.12"
+ureq = { version = "2.9", features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
