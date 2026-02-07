@@ -6,7 +6,7 @@
 use nu_engine::command_prelude::*;
 use nu_seks::{BrokerClient, register_named_secret, scrub_output};
 use std::io::Write;
-use std::process::{Command, Stdio};
+use std::process::{Command as StdCommand, Stdio};
 
 #[derive(Clone)]
 pub struct SekshGit;
@@ -108,7 +108,7 @@ ENVIRONMENT VARIABLES:
         let broker = BrokerClient::new();
 
         // Build git command
-        let mut cmd = Command::new("git");
+        let mut cmd = StdCommand::new("git");
         cmd.arg(&git_command);
         cmd.args(&git_args);
 

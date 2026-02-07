@@ -56,7 +56,7 @@ impl Command for SekshHttp {
                 "header",
                 SyntaxShape::List(Box::new(SyntaxShape::String)),
                 "Plain header (no secrets): 'Header-Name: value'",
-                Some('h'),
+                Some('e'),
             )
             .named(
                 "data",
