@@ -6,6 +6,13 @@ For upstream nushell changes, see the [nushell releases](https://github.com/nush
 
 ---
 
+## [0.110.3-seks] - 2026-02-09
+
+### Fixed
+- **CI:** Add `contents: write` permission to release workflow. Fixes 403 error when publishing release artifacts.
+
+---
+
 ## [0.110.2-seks] - 2026-02-09
 
 ### Fixed
