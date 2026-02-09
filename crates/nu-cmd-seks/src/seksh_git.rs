@@ -141,8 +141,9 @@ ENVIRONMENT VARIABLES:
             let token = fetch_secret(&broker, token_name, span)?;
             register_named_secret(token_name, &token);
 
-            // Create askpass script
-            let askpass_path = write_askpass_script(&token, None)
+            // Create askpass script with default username for token auth
+            // GitHub/GitLab accept "x-access-token" as username when using PAT
+            let askpass_path = write_askpass_script(&token, Some("x-access-token"))
                 .map_err(|e| ShellError::GenericError {
                     error: "Failed to create askpass script".into(),
                     msg: e,
