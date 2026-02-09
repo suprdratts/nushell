@@ -180,21 +180,33 @@ volumes:
 
 ## seksh Binary Distribution
 
-Published as GitHub Release artifacts:
+seksh is built from a nushell fork. The binary is named `nu` but includes all SEKS functionality.
+
+Published as GitHub Release artifacts (tarball/zip containing `nu` binary):
 
 ```
-https://github.com/SEKSBot/seksh/releases/latest/download/seksh-linux-x64
-https://github.com/SEKSBot/seksh/releases/latest/download/seksh-linux-arm64
-https://github.com/SEKSBot/seksh/releases/latest/download/seksh-darwin-x64
-https://github.com/SEKSBot/seksh/releases/latest/download/seksh-darwin-arm64
+https://github.com/SEKSBot/seksh/releases/latest/download/nu-<version>-x86_64-unknown-linux-gnu.tar.gz
+https://github.com/SEKSBot/seksh/releases/latest/download/nu-<version>-aarch64-unknown-linux-gnu.tar.gz
+https://github.com/SEKSBot/seksh/releases/latest/download/nu-<version>-x86_64-apple-darwin.tar.gz
+https://github.com/SEKSBot/seksh/releases/latest/download/nu-<version>-aarch64-apple-darwin.tar.gz
 ```
 
 **In Dockerfile:**
 ```dockerfile
+ARG SEKSH_VERSION=0.110.1
 ARG TARGETARCH
-RUN curl -L https://github.com/SEKSBot/seksh/releases/latest/download/seksh-linux-${TARGETARCH} \
-    -o /usr/local/bin/seksh && chmod +x /usr/local/bin/seksh
+
+# Map Docker arch to Rust target
+RUN case "${TARGETARCH}" in \
+      "amd64") RUST_TARGET="x86_64-unknown-linux-gnu" ;; \
+      "arm64") RUST_TARGET="aarch64-unknown-linux-gnu" ;; \
+    esac && \
+    curl -L "https://github.com/SEKSBot/seksh/releases/download/${SEKSH_VERSION}/nu-${SEKSH_VERSION}-${RUST_TARGET}.tar.gz" \
+    | tar xz -C /usr/local/bin && \
+    ln -s /usr/local/bin/nu /usr/local/bin/seksh
 ```
+
+**Note:** The binary is `nu` but includes `getseks`, `listseks`, `seksh-http`, and output scrubbing.
 
 ---
 
