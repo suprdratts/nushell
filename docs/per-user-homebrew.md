@@ -33,8 +33,10 @@ bash ~/.openclaw/workspace/scripts/homebrew-per-user.sh
    - Creates symlinks in `~/.brew/bin`
 
 3. **Reinstalls packages** from saved lists
+   - Casks install to `~/Applications` (not `/Applications`)
 
 4. **Configures shell** (adds to `~/.zshrc` or `~/.bashrc`)
+   - Sets `HOMEBREW_CASK_OPTS` for per-user app directory
 
 ## Manual Setup
 
@@ -56,7 +58,7 @@ export PATH="$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH"
 export MANPATH="$HOMEBREW_PREFIX/share/man${MANPATH+:$MANPATH}:"
 export INFOPATH="$HOMEBREW_PREFIX/share/info:${INFOPATH:-}"
 
-# Optional: Install casks to ~/Applications instead of /Applications
+# Install casks to ~/Applications (recommended for full isolation)
 export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
 mkdir -p ~/Applications
 

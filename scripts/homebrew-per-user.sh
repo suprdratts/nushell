@@ -84,6 +84,8 @@ export PATH="$HOMEBREW_PREFIX/bin:$PATH"
 export HOMEBREW_PREFIX
 export HOMEBREW_CELLAR="$HOMEBREW_PREFIX/Cellar"
 export HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX/Homebrew"
+export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
+mkdir -p "$HOME/Applications"
 
 # Verify
 log "Verifying installation..."
@@ -115,6 +117,7 @@ export HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX/Homebrew"
 export PATH="$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH"
 export MANPATH="$HOMEBREW_PREFIX/share/man${MANPATH+:$MANPATH}:"
 export INFOPATH="$HOMEBREW_PREFIX/share/info:${INFOPATH:-}"
+export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
 '
 
 log "Add this to your shell config (~/.zshrc or ~/.bashrc):"
