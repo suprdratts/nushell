@@ -11,8 +11,8 @@ repository = "https://github.com/rotcsgame/seksh/tree/main/crates/nu-cmd-seks"
 bench = false
 
 [dependencies]
-nu-engine = { path = "../nu-engine", version = "0.110.1" }
-nu-protocol = { path = "../nu-protocol", version = "0.110.1" }
+nu-engine = { path = "../nu-engine", version = "0.111.1" }
+nu-protocol = { path = "../nu-protocol", version = "0.111.1" }
 nu-seks = { path = "../nu-seks", version = "0.110.1" }
 
 [lints]
