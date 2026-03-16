@@ -358,7 +358,7 @@ fn make_http_request(
         .set_write_timeout(Some(Duration::from_secs(timeout_secs)))
         .ok();
 
-        // Build request
+    // Build request
     let mut request = format!("{} {} HTTP/1.1\r\n", method, path);
     request.push_str(&format!("Host: {}\r\n", host));
     request.push_str("Connection: close\r\n");
