@@ -32,9 +32,13 @@ impl Command for Ast {
                 SyntaxShape::String,
                 "The pipeline to print the ast for.",
             )
-            .switch("json", "Serialize to json", Some('j'))
-            .switch("minify", "Minify the nuon or json output", Some('m'))
-            .switch("flatten", "An easier to read version of the ast", Some('f'))
+            .switch("json", "Serialize to json.", Some('j'))
+            .switch("minify", "Minify the nuon or json output.", Some('m'))
+            .switch(
+                "flatten",
+                "An easier to read version of the ast.",
+                Some('f'),
+            )
             .allow_variants_without_examples(true)
             .category(Category::Debug)
     }
@@ -42,32 +46,32 @@ impl Command for Ast {
     fn examples(&self) -> Vec<Example<'_>> {
         vec![
             Example {
-                description: "Print the ast of a string",
+                description: "Print the ast of a string.",
                 example: "ast 'hello'",
                 result: None,
             },
             Example {
-                description: "Print the ast of a pipeline",
+                description: "Print the ast of a pipeline.",
                 example: "ast 'ls | where name =~ README'",
                 result: None,
             },
             Example {
-                description: "Print the ast of a pipeline with an error",
+                description: "Print the ast of a pipeline with an error.",
                 example: "ast 'for x in 1..10 { echo $x '",
                 result: None,
             },
             Example {
-                description: "Print the ast of a pipeline with an error, as json, in a nushell table",
+                description: "Print the ast of a pipeline with an error, as json, in a nushell table.",
                 example: "ast 'for x in 1..10 { echo $x ' --json | get block | from json",
                 result: None,
             },
             Example {
-                description: "Print the ast of a pipeline with an error, as json, minified",
+                description: "Print the ast of a pipeline with an error, as json, minified.",
                 example: "ast 'for x in 1..10 { echo $x ' --json --minify",
                 result: None,
             },
             Example {
-                description: "Print the ast of a string flattened",
+                description: "Print the ast of a string flattened.",
                 example: r#"ast "'hello'" --flatten"#,
                 result: Some(Value::test_list(vec![Value::test_record(record! {
                     "content" => Value::test_string("'hello'"),
@@ -78,19 +82,19 @@ impl Command for Ast {
                 })])),
             },
             Example {
-                description: "Print the ast of a string flattened, as json, minified",
+                description: "Print the ast of a string flattened, as json, minified.",
                 example: r#"ast "'hello'" --flatten --json --minify"#,
                 result: Some(Value::test_string(
                     r#"[{"content":"'hello'","shape":"shape_string","span":{"start":0,"end":7}}]"#,
                 )),
             },
             Example {
-                description: "Print the ast of a pipeline flattened",
+                description: "Print the ast of a pipeline flattened.",
                 example: r#"ast 'ls | sort-by type name -i' --flatten"#,
                 result: Some(Value::test_list(vec![
                     Value::test_record(record! {
                         "content" => Value::test_string("ls"),
-                        "shape" => Value::test_string("shape_external"),
+                        "shape" => Value::test_string("shape_internalcall"),
                         "span" => Value::test_record(record! {
                             "start" => Value::test_int(0),
                             "end" => Value::test_int(2),}),
@@ -397,9 +401,8 @@ fn extract_span_from_json(obj: &serde_json::Map<String, serde_json::Value>) -> O
 #[cfg(test)]
 mod test {
     #[test]
-    fn test_examples() {
+    fn test_examples() -> nu_test_support::Result {
         use super::Ast;
-        use crate::test_examples;
-        test_examples(Ast {})
+        nu_test_support::test().examples(Ast)
     }
 }

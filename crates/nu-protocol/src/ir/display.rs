@@ -83,6 +83,9 @@ impl fmt::Display for FmtInstruction<'_> {
             Instruction::Collect { src_dst } => {
                 write!(f, "{:WIDTH$} {src_dst}", "collect")
             }
+            Instruction::TryCollect { src_dst } => {
+                write!(f, "{:WIDTH$} {src_dst}", "try-collect")
+            }
             Instruction::Span { src_dst } => {
                 write!(f, "{:WIDTH$} {src_dst}", "span")
             }
@@ -387,6 +390,7 @@ impl fmt::Display for FmtLiteral<'_> {
             Literal::CellPath(p) => write!(f, "cell-path({p})"),
             Literal::Date(dt) => write!(f, "date({dt})"),
             Literal::Nothing => write!(f, "nothing"),
+            Literal::Empty => write!(f, "empty"),
         }
     }
 }

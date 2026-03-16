@@ -21,7 +21,7 @@ impl Command for Tutor {
             .named(
                 "find",
                 SyntaxShape::String,
-                "Search tutorial for a phrase",
+                "Search tutorial for a phrase.",
                 Some('f'),
             )
             .category(Category::Misc)
@@ -48,12 +48,12 @@ impl Command for Tutor {
     fn examples(&self) -> Vec<Example<'_>> {
         vec![
             Example {
-                description: "Begin the tutorial",
+                description: "Begin the tutorial.",
                 example: "tutor begin",
                 result: None,
             },
             Example {
-                description: "Search a tutorial by phrase",
+                description: "Search a tutorial by phrase.",
                 example: "tutor --find \"$in\"",
                 result: None,
             },
@@ -474,9 +474,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_examples() {
-        use crate::test_examples;
-
-        test_examples(Tutor)
+    fn test_examples() -> nu_test_support::Result {
+        nu_test_support::test().examples(Tutor)
     }
 }
