@@ -23,7 +23,11 @@ impl Command for GetSeks {
     fn signature(&self) -> Signature {
         Signature::build("getseks")
             .input_output_types(vec![(Type::Nothing, Type::String)])
-            .required("name", SyntaxShape::String, "The name of the secret to fetch.")
+            .required(
+                "name",
+                SyntaxShape::String,
+                "The name of the secret to fetch.",
+            )
             .category(Category::Env)
     }
 

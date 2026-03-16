@@ -4,7 +4,7 @@
 //! matching during output scrubbing.
 
 use crate::MIN_SECRET_LENGTH;
-use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine};
+use base64::{Engine, engine::general_purpose::STANDARD as BASE64_STANDARD};
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 use std::collections::HashMap;
@@ -104,7 +104,7 @@ impl SecretRegistry {
 
         // Use the secret itself as the key for anonymous secrets
         let key = format!("__anon_{}", secrets.len());
-        
+
         // Check if this exact secret value is already registered
         for registered in secrets.values() {
             if registered.patterns.first() == Some(&secret.to_string()) {

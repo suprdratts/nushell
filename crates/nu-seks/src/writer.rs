@@ -12,7 +12,7 @@
 //!
 //! For binary output, data is passed through unchanged.
 
-use crate::registry::{SecretRegistry, GLOBAL_REGISTRY};
+use crate::registry::{GLOBAL_REGISTRY, SecretRegistry};
 use crate::scrubber::scrub_output_with_registry;
 use std::io::{self, Write};
 
@@ -172,10 +172,7 @@ mod tests {
             writer.write_all(b"Password: secret123\n").unwrap();
         }
 
-        assert_eq!(
-            String::from_utf8(output).unwrap(),
-            "Password: [REDACTED]\n"
-        );
+        assert_eq!(String::from_utf8(output).unwrap(), "Password: [REDACTED]\n");
     }
 
     #[test]

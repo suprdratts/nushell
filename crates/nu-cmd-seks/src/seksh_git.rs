@@ -121,19 +121,24 @@ ENVIRONMENT VARIABLES:
             register_named_secret(&key_secret, &ssh_key);
 
             // Write key to temp file with restrictive permissions
-            let key_path = write_temp_ssh_key(&ssh_key)
-                .map_err(|e| ShellError::GenericError {
-                    error: "Failed to write SSH key".into(),
-                    msg: e,
-                    span: Some(span),
-                    help: None,
-                    inner: vec![],
-                })?;
+            let key_path = write_temp_ssh_key(&ssh_key).map_err(|e| ShellError::GenericError {
+                error: "Failed to write SSH key".into(),
+                msg: e,
+                span: Some(span),
+                help: None,
+                inner: vec![],
+            })?;
 
             temp_files.push(key_path.clone());
 
             // Configure git to use this key
-            cmd.env("GIT_SSH_COMMAND", format!("ssh -i {} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new", key_path.display()));
+            cmd.env(
+                "GIT_SSH_COMMAND",
+                format!(
+                    "ssh -i {} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new",
+                    key_path.display()
+                ),
+            );
         }
 
         // Handle token auth (GitHub/GitLab style)
@@ -143,13 +148,15 @@ ENVIRONMENT VARIABLES:
 
             // Create askpass script with default username for token auth
             // GitHub/GitLab accept "x-access-token" as username when using PAT
-            let askpass_path = write_askpass_script(&token, Some("x-access-token"))
-                .map_err(|e| ShellError::GenericError {
-                    error: "Failed to create askpass script".into(),
-                    msg: e,
-                    span: Some(span),
-                    help: None,
-                    inner: vec![],
+            let askpass_path =
+                write_askpass_script(&token, Some("x-access-token")).map_err(|e| {
+                    ShellError::GenericError {
+                        error: "Failed to create askpass script".into(),
+                        msg: e,
+                        span: Some(span),
+                        help: None,
+                        inner: vec![],
+                    }
                 })?;
 
             temp_files.push(askpass_path.clone());
@@ -160,13 +167,15 @@ ENVIRONMENT VARIABLES:
 
         // Handle user/pass auth
         if let Some(user_name) = &user_secret {
-            let pass_name = pass_secret.as_ref().ok_or_else(|| ShellError::GenericError {
-                error: "Password required".into(),
-                msg: "--user requires --pass".into(),
-                span: Some(span),
-                help: None,
-                inner: vec![],
-            })?;
+            let pass_name = pass_secret
+                .as_ref()
+                .ok_or_else(|| ShellError::GenericError {
+                    error: "Password required".into(),
+                    msg: "--user requires --pass".into(),
+                    span: Some(span),
+                    help: None,
+                    inner: vec![],
+                })?;
 
             let username = fetch_secret(&broker, user_name, span)?;
             let password = fetch_secret(&broker, pass_name, span)?;
@@ -175,14 +184,15 @@ ENVIRONMENT VARIABLES:
             register_named_secret(pass_name, &password);
 
             // Create askpass script that provides both user and pass
-            let askpass_path = write_askpass_script(&password, Some(&username))
-                .map_err(|e| ShellError::GenericError {
+            let askpass_path = write_askpass_script(&password, Some(&username)).map_err(|e| {
+                ShellError::GenericError {
                     error: "Failed to create askpass script".into(),
                     msg: e,
                     span: Some(span),
                     help: None,
                     inner: vec![],
-                })?;
+                }
+            })?;
 
             temp_files.push(askpass_path.clone());
 
@@ -271,18 +281,23 @@ ENVIRONMENT VARIABLES:
 }
 
 fn fetch_secret(broker: &BrokerClient, name: &str, span: Span) -> Result<String, ShellError> {
-    broker.get_secret(name).map_err(|e| ShellError::GenericError {
-        error: format!("Failed to get secret '{}'", name),
-        msg: e.to_string(),
-        span: Some(span),
-        help: Some("Make sure the SEKS broker is running and the secret exists".into()),
-        inner: vec![],
-    })
+    broker
+        .get_secret(name)
+        .map_err(|e| ShellError::GenericError {
+            error: format!("Failed to get secret '{}'", name),
+            msg: e.to_string(),
+            span: Some(span),
+            help: Some("Make sure the SEKS broker is running and the secret exists".into()),
+            inner: vec![],
+        })
 }
 
 /// Write an askpass script that echoes the credential
 /// This is how we inject credentials without exposing them to the shell
-fn write_askpass_script(password: &str, username: Option<&str>) -> Result<std::path::PathBuf, String> {
+fn write_askpass_script(
+    password: &str,
+    username: Option<&str>,
+) -> Result<std::path::PathBuf, String> {
     use std::os::unix::fs::PermissionsExt;
 
     let temp_dir = std::env::temp_dir();
@@ -317,7 +332,8 @@ echo "{}"
         .map_err(|e| format!("Failed to write askpass script: {}", e))?;
 
     // Make executable (700)
-    let mut perms = file.metadata()
+    let mut perms = file
+        .metadata()
         .map_err(|e| format!("Failed to get file metadata: {}", e))?
         .permissions();
     perms.set_mode(0o700);
@@ -341,7 +357,8 @@ fn write_temp_ssh_key(key: &str) -> Result<std::path::PathBuf, String> {
         .map_err(|e| format!("Failed to write key file: {}", e))?;
 
     // SSH requires 600 permissions on key files
-    let mut perms = file.metadata()
+    let mut perms = file
+        .metadata()
         .map_err(|e| format!("Failed to get file metadata: {}", e))?
         .permissions();
     perms.set_mode(0o600);

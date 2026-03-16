@@ -48,10 +48,12 @@ mod writer;
 
 pub use broker::{BrokerClient, BrokerError};
 pub use registry::{
-    clear_secrets, register_named_secret, register_secret, secret_count, SecretRegistry,
-    GLOBAL_REGISTRY,
+    GLOBAL_REGISTRY, SecretRegistry, clear_secrets, register_named_secret, register_secret,
+    secret_count,
 };
-pub use scrubber::{scrub_bytes, scrub_bytes_with_registry, scrub_output, scrub_output_with_registry};
+pub use scrubber::{
+    scrub_bytes, scrub_bytes_with_registry, scrub_output, scrub_output_with_registry,
+};
 pub use writer::ScrubWriter;
 
 /// The default redaction marker used to replace anonymous secrets in output

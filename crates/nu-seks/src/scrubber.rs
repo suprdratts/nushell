@@ -3,7 +3,7 @@
 //! The scrubber performs string replacement of all registered secrets and their
 //! encoded variants with redaction markers like `[REDACTED]` or `<secret:name>`.
 
-use crate::registry::{SecretRegistry, GLOBAL_REGISTRY};
+use crate::registry::{GLOBAL_REGISTRY, SecretRegistry};
 
 /// Scrub output using the global secret registry.
 ///
@@ -127,10 +127,7 @@ mod tests {
         // "mysecret" should be replaced first (longer)
         let input = "This contains mysecret and also just secret";
         let output = scrub_output_with_registry(input, &registry);
-        assert_eq!(
-            output,
-            "This contains [REDACTED] and also just [REDACTED]"
-        );
+        assert_eq!(output, "This contains [REDACTED] and also just [REDACTED]");
     }
 
     #[test]

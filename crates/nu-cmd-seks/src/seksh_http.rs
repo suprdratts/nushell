@@ -26,7 +26,11 @@ impl Command for SekshHttp {
     fn signature(&self) -> Signature {
         Signature::build("seksh-http")
             .input_output_types(vec![(Type::Nothing, Type::String)])
-            .required("method", SyntaxShape::String, "HTTP method (GET, POST, PUT, DELETE, etc.)")
+            .required(
+                "method",
+                SyntaxShape::String,
+                "HTTP method (GET, POST, PUT, DELETE, etc.)",
+            )
             .required("url", SyntaxShape::String, "URL to request")
             .named(
                 "auth-bearer",
@@ -58,12 +62,7 @@ impl Command for SekshHttp {
                 "Plain header (no secrets): 'Header-Name: value'",
                 Some('e'),
             )
-            .named(
-                "data",
-                SyntaxShape::String,
-                "Request body data",
-                Some('d'),
-            )
+            .named("data", SyntaxShape::String, "Request body data", Some('d'))
             .named(
                 "timeout",
                 SyntaxShape::Int,
@@ -110,15 +109,18 @@ the shell at all."#
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
         let span = call.head;
-        
+
         // Parse arguments
         let method: String = call.req(engine_state, stack, 0)?;
         let url: String = call.req(engine_state, stack, 1)?;
         
         let auth_bearer: Option<String> = call.get_flag(engine_state, stack, "auth-bearer")?;
-        let auth_basic_user: Option<String> = call.get_flag(engine_state, stack, "auth-basic-user")?;
-        let auth_basic_pass: Option<String> = call.get_flag(engine_state, stack, "auth-basic-pass")?;
-        let header_secrets: Option<Vec<String>> = call.get_flag(engine_state, stack, "header-secret")?;
+        let auth_basic_user: Option<String> =
+            call.get_flag(engine_state, stack, "auth-basic-user")?;
+        let auth_basic_pass: Option<String> =
+            call.get_flag(engine_state, stack, "auth-basic-pass")?;
+        let header_secrets: Option<Vec<String>> =
+            call.get_flag(engine_state, stack, "header-secret")?;
         let plain_headers: Option<Vec<String>> = call.get_flag(engine_state, stack, "header")?;
         let data: Option<String> = call.get_flag(engine_state, stack, "data")?;
         let timeout: Option<i64> = call.get_flag(engine_state, stack, "timeout")?;
@@ -147,7 +149,7 @@ the shell at all."#
 
             let username = fetch_secret(&broker, &user_secret, span)?;
             let password = fetch_secret(&broker, &pass_secret, span)?;
-            
+
             register_named_secret(&user_secret, &username);
             register_named_secret(&pass_secret, &password);
 
@@ -203,7 +205,8 @@ the shell at all."#
             data.as_deref(),
             timeout_secs,
             insecure,
-        ).map_err(|e| ShellError::GenericError {
+        )
+        .map_err(|e| ShellError::GenericError {
             error: "HTTP request failed".into(),
             msg: e,
             span: Some(span),
@@ -244,45 +247,47 @@ the shell at all."#
 }
 
 fn fetch_secret(broker: &BrokerClient, name: &str, span: Span) -> Result<String, ShellError> {
-    broker.get_secret(name).map_err(|e| ShellError::GenericError {
-        error: format!("Failed to get secret '{}'", name),
-        msg: e.to_string(),
-        span: Some(span),
-        help: Some("Make sure the SEKS broker is running and the secret exists".into()),
-        inner: vec![],
-    })
+    broker
+        .get_secret(name)
+        .map_err(|e| ShellError::GenericError {
+            error: format!("Failed to get secret '{}'", name),
+            msg: e.to_string(),
+            span: Some(span),
+            help: Some("Make sure the SEKS broker is running and the secret exists".into()),
+            inner: vec![],
+        })
 }
 
 /// Simple base64 encoding without external dependencies
 fn base64_encode(input: &[u8]) -> String {
     const ALPHABET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    
+
     let mut result = String::new();
     let mut i = 0;
-    
+
     while i < input.len() {
         let b0 = input[i] as usize;
         let b1 = if i + 1 < input.len() { input[i + 1] as usize } else { 0 };
         let b2 = if i + 2 < input.len() { input[i + 2] as usize } else { 0 };
-        
+
         result.push(ALPHABET[b0 >> 2] as char);
         result.push(ALPHABET[((b0 & 0x03) << 4) | (b1 >> 4)] as char);
-        
+
         if i + 1 < input.len() {
             result.push(ALPHABET[((b1 & 0x0f) << 2) | (b2 >> 6)] as char);
         } else {
             result.push('=');
         }
-        
+
         if i + 2 < input.len() {
             result.push(ALPHABET[b2 & 0x3f] as char);
         } else {
             result.push('=');
         }
-        
+
         i += 3;
     }
-    
+
     result
 }
 
@@ -298,7 +303,7 @@ fn make_http_request(
 ) -> Result<String, String> {
     // Parse URL
     let url = url.trim();
-    
+
     // For HTTPS, we need TLS support - use native-tls or rustls
     // For now, this is a minimal implementation that handles HTTP
     // In production, integrate with nu-command's HTTP client or use reqwest
@@ -317,7 +322,12 @@ fn make_http_request(
     };
 
     let (host, port) = match host_port.find(':') {
-        Some(idx) => (&host_port[..idx], host_port[idx + 1..].parse::<u16>().unwrap_or(if scheme == "https" { 443 } else { 80 })),
+        Some(idx) => (
+            &host_port[..idx],
+            host_port[idx + 1..]
+                .parse::<u16>()
+                .unwrap_or(if scheme == "https" { 443 } else { 80 }),
+        ),
         None => (host_port, if scheme == "https" { 443 } else { 80 }),
     };
 
@@ -330,8 +340,8 @@ fn make_http_request(
 
     // HTTP implementation
     let addr = format!("{}:{}", host, port);
-    let mut stream = TcpStream::connect(&addr)
-        .map_err(|e| format!("Failed to connect to {}: {}", addr, e))?;
+    let mut stream =
+        TcpStream::connect(&addr).map_err(|e| format!("Failed to connect to {}: {}", addr, e))?;
     
     stream.set_read_timeout(Some(Duration::from_secs(timeout_secs))).ok();
     stream.set_write_timeout(Some(Duration::from_secs(timeout_secs))).ok();
@@ -340,7 +350,7 @@ fn make_http_request(
     let mut request = format!("{} {} HTTP/1.1\r\n", method, path);
     request.push_str(&format!("Host: {}\r\n", host));
     request.push_str("Connection: close\r\n");
-    
+
     for (name, value) in headers {
         request.push_str(&format!("{}: {}\r\n", name, value));
     }
@@ -351,25 +361,27 @@ fn make_http_request(
             request.push_str("Content-Type: application/json\r\n");
         }
     }
-    
+
     request.push_str("\r\n");
     
     if let Some(body_data) = body {
         request.push_str(body_data);
     }
 
-    stream.write_all(request.as_bytes())
+    stream
+        .write_all(request.as_bytes())
         .map_err(|e| format!("Failed to send request: {}", e))?;
-    stream.flush()
+    stream
+        .flush()
         .map_err(|e| format!("Failed to flush: {}", e))?;
 
     // Read response
     let mut response = Vec::new();
-    stream.read_to_end(&mut response)
+    stream
+        .read_to_end(&mut response)
         .map_err(|e| format!("Failed to read response: {}", e))?;
 
-    String::from_utf8(response)
-        .map_err(|e| format!("Invalid UTF-8 in response: {}", e))
+    String::from_utf8(response).map_err(|e| format!("Invalid UTF-8 in response: {}", e))
 }
 
 /// For HTTPS, use curl subprocess (practical fallback)
@@ -383,34 +395,35 @@ fn make_https_request_via_curl(
     timeout_secs: u64,
 ) -> Result<String, String> {
     use std::process::{Command, Stdio};
-    
+
     let mut cmd = Command::new("curl");
     cmd.arg("-s") // silent
-       .arg("-S") // show errors
-       .arg("-X").arg(method)
-       .arg("--max-time").arg(timeout_secs.to_string());
-    
+        .arg("-S") // show errors
+        .arg("-X")
+        .arg(method)
+        .arg("--max-time")
+        .arg(timeout_secs.to_string());
+
     for (name, value) in headers {
         cmd.arg("-H").arg(format!("{}: {}", name, value));
     }
-    
+
     if let Some(body_data) = body {
         cmd.arg("-d").arg(body_data);
     }
     
     cmd.arg(url);
     
-    cmd.stdout(Stdio::piped())
-       .stderr(Stdio::piped());
-    
-    let output = cmd.output()
+    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+
+    let output = cmd
+        .output()
         .map_err(|e| format!("Failed to execute curl: {}", e))?;
     
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         return Err(format!("curl failed: {}", stderr));
     }
-    
-    String::from_utf8(output.stdout)
-        .map_err(|e| format!("Invalid UTF-8 in response: {}", e))
+
+    String::from_utf8(output.stdout).map_err(|e| format!("Invalid UTF-8 in response: {}", e))
 }

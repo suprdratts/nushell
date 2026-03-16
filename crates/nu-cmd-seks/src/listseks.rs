@@ -44,13 +44,15 @@ exposing any sensitive data."#
 
         let client = BrokerClient::new();
 
-        let names = client.list_secrets().map_err(|e| ShellError::GenericError {
-            error: "Failed to list secrets".into(),
-            msg: e.to_string(),
-            span: Some(span),
-            help: Some("Make sure the SEKS broker is running (seks-broker)".into()),
-            inner: vec![],
-        })?;
+        let names = client
+            .list_secrets()
+            .map_err(|e| ShellError::GenericError {
+                error: "Failed to list secrets".into(),
+                msg: e.to_string(),
+                span: Some(span),
+                help: Some("Make sure the SEKS broker is running (seks-broker)".into()),
+                inner: vec![],
+            })?;
 
         let values: Vec<Value> = names
             .into_iter()

@@ -88,14 +88,14 @@ pub struct BrokerClient {
 impl BrokerClient {
     /// Create a new broker client using environment variables
     pub fn new() -> Self {
-        let broker_url = std::env::var("SEKS_BROKER_URL")
-            .unwrap_or_else(|_| DEFAULT_BROKER_URL.to_string());
+        let broker_url =
+            std::env::var("SEKS_BROKER_URL").unwrap_or_else(|_| DEFAULT_BROKER_URL.to_string());
         let agent_token = std::env::var("SEKS_AGENT_TOKEN").ok();
-        
+
         let agent = ureq::AgentBuilder::new()
             .timeout(Duration::from_secs(10))
             .build();
-        
+
         Self {
             broker_url,
             agent_token,
@@ -124,13 +124,13 @@ impl BrokerClient {
 
     /// Get a secret from the broker
     pub fn get_secret(&self, name: &str) -> Result<String, BrokerError> {
-        let token = self.agent_token.as_ref()
-            .ok_or(BrokerError::NoToken)?;
-        
+        let token = self.agent_token.as_ref().ok_or(BrokerError::NoToken)?;
+
         let url = format!("{}/v1/secrets/get", self.broker_url);
         let request = GetSecretRequest { name };
-        
-        let response = self.agent
+
+        let response = self
+            .agent
             .post(&url)
             .set("Authorization", &format!("Bearer {}", token))
             .set("Content-Type", "application/json")
@@ -142,13 +142,14 @@ impl BrokerClient {
                 }
                 ureq::Error::Transport(t) => BrokerError::ConnectionFailed(t.to_string()),
             })?;
-        
+
         let resp: GetSecretResponse = response
             .into_json()
             .map_err(|e| BrokerError::InvalidResponse(e.to_string()))?;
         
         if resp.ok {
-            resp.value.ok_or_else(|| BrokerError::InvalidResponse("Missing value".to_string()))
+            resp.value
+                .ok_or_else(|| BrokerError::InvalidResponse("Missing value".to_string()))
         } else {
             let error = resp.error.unwrap_or_else(|| "Unknown error".to_string());
             if error.contains("not found") {
@@ -161,12 +162,12 @@ impl BrokerClient {
 
     /// List available secrets (names only, not values)
     pub fn list_secrets(&self) -> Result<Vec<String>, BrokerError> {
-        let token = self.agent_token.as_ref()
-            .ok_or(BrokerError::NoToken)?;
-        
+        let token = self.agent_token.as_ref().ok_or(BrokerError::NoToken)?;
+
         let url = format!("{}/v1/secrets/list", self.broker_url);
         
-        let response = self.agent
+        let response = self
+            .agent
             .post(&url)
             .set("Authorization", &format!("Bearer {}", token))
             .set("Content-Type", "application/json")
@@ -178,11 +179,11 @@ impl BrokerClient {
                 }
                 ureq::Error::Transport(t) => BrokerError::ConnectionFailed(t.to_string()),
             })?;
-        
+
         let resp: ListSecretsResponse = response
             .into_json()
             .map_err(|e| BrokerError::InvalidResponse(e.to_string()))?;
-        
+
         if resp.ok {
             let secrets = resp.secrets.unwrap_or_default();
             Ok(secrets.into_iter().map(|s| s.name).collect())
@@ -191,12 +192,12 @@ impl BrokerClient {
             Err(BrokerError::BrokerError(error))
         }
     }
-    
+
     /// Get the configured broker URL
     pub fn broker_url(&self) -> &str {
         &self.broker_url
     }
-    
+
     /// Check if a token is configured
     pub fn has_token(&self) -> bool {
         self.agent_token.is_some()
@@ -218,7 +219,7 @@ mod tests {
         // Clear env vars for test
         std::env::remove_var("SEKS_BROKER_URL");
         std::env::remove_var("SEKS_AGENT_TOKEN");
-        
+
         let client = BrokerClient::new();
         assert_eq!(client.broker_url(), DEFAULT_BROKER_URL);
         assert!(!client.has_token());
@@ -233,7 +234,7 @@ mod tests {
         assert_eq!(client.broker_url(), "https://broker.example.com");
         assert!(client.has_token());
     }
-    
+
     #[test]
     fn test_no_token_error() {
         std::env::remove_var("SEKS_AGENT_TOKEN");
