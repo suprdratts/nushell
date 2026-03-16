@@ -7,7 +7,7 @@ pub(crate) fn add_command_context(engine_state: EngineState) -> EngineState {
     let engine_state = nu_command::add_shell_command_context(engine_state);
     let engine_state = nu_cmd_extra::add_extra_command_context(engine_state);
     let engine_state = nu_cli::add_cli_context(engine_state);
-    let mut engine_state = nu_explore::add_explore_context(engine_state);
+    let engine_state = nu_explore::add_explore_context(engine_state);
     // Add SEKS commands
     let engine_state = nu_cmd_seks::add_seks_command_context(engine_state);
     engine_state
