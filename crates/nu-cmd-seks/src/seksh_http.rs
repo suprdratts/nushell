@@ -113,7 +113,7 @@ the shell at all."#
         // Parse arguments
         let method: String = call.req(engine_state, stack, 0)?;
         let url: String = call.req(engine_state, stack, 1)?;
-        
+
         let auth_bearer: Option<String> = call.get_flag(engine_state, stack, "auth-bearer")?;
         let auth_basic_user: Option<String> =
             call.get_flag(engine_state, stack, "auth-basic-user")?;
@@ -267,8 +267,16 @@ fn base64_encode(input: &[u8]) -> String {
 
     while i < input.len() {
         let b0 = input[i] as usize;
-        let b1 = if i + 1 < input.len() { input[i + 1] as usize } else { 0 };
-        let b2 = if i + 2 < input.len() { input[i + 2] as usize } else { 0 };
+        let b1 = if i + 1 < input.len() {
+            input[i + 1] as usize
+        } else {
+            0
+        };
+        let b2 = if i + 2 < input.len() {
+            input[i + 2] as usize
+        } else {
+            0
+        };
 
         result.push(ALPHABET[b0 >> 2] as char);
         result.push(ALPHABET[((b0 & 0x03) << 4) | (b1 >> 4)] as char);
@@ -307,7 +315,7 @@ fn make_http_request(
     // For HTTPS, we need TLS support - use native-tls or rustls
     // For now, this is a minimal implementation that handles HTTP
     // In production, integrate with nu-command's HTTP client or use reqwest
-    
+
     let (scheme, rest) = if url.starts_with("https://") {
         ("https", &url[8..])
     } else if url.starts_with("http://") {
@@ -342,11 +350,15 @@ fn make_http_request(
     let addr = format!("{}:{}", host, port);
     let mut stream =
         TcpStream::connect(&addr).map_err(|e| format!("Failed to connect to {}: {}", addr, e))?;
-    
-    stream.set_read_timeout(Some(Duration::from_secs(timeout_secs))).ok();
-    stream.set_write_timeout(Some(Duration::from_secs(timeout_secs))).ok();
 
-    // Build request
+    stream
+        .set_read_timeout(Some(Duration::from_secs(timeout_secs)))
+        .ok();
+    stream
+        .set_write_timeout(Some(Duration::from_secs(timeout_secs)))
+        .ok();
+
+        // Build request
     let mut request = format!("{} {} HTTP/1.1\r\n", method, path);
     request.push_str(&format!("Host: {}\r\n", host));
     request.push_str("Connection: close\r\n");
@@ -354,7 +366,7 @@ fn make_http_request(
     for (name, value) in headers {
         request.push_str(&format!("{}: {}\r\n", name, value));
     }
-    
+
     if let Some(body_data) = body {
         request.push_str(&format!("Content-Length: {}\r\n", body_data.len()));
         if !headers.contains_key("Content-Type") {
@@ -363,7 +375,7 @@ fn make_http_request(
     }
 
     request.push_str("\r\n");
-    
+
     if let Some(body_data) = body {
         request.push_str(body_data);
     }
@@ -411,15 +423,15 @@ fn make_https_request_via_curl(
     if let Some(body_data) = body {
         cmd.arg("-d").arg(body_data);
     }
-    
+
     cmd.arg(url);
-    
+
     cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
 
     let output = cmd
         .output()
         .map_err(|e| format!("Failed to execute curl: {}", e))?;
-    
+
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         return Err(format!("curl failed: {}", stderr));

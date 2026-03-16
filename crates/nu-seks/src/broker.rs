@@ -108,7 +108,7 @@ impl BrokerClient {
         let agent = ureq::AgentBuilder::new()
             .timeout(Duration::from_secs(10))
             .build();
-        
+
         Self {
             broker_url,
             agent_token: Some(agent_token),
@@ -146,7 +146,7 @@ impl BrokerClient {
         let resp: GetSecretResponse = response
             .into_json()
             .map_err(|e| BrokerError::InvalidResponse(e.to_string()))?;
-        
+
         if resp.ok {
             resp.value
                 .ok_or_else(|| BrokerError::InvalidResponse("Missing value".to_string()))
@@ -165,7 +165,7 @@ impl BrokerClient {
         let token = self.agent_token.as_ref().ok_or(BrokerError::NoToken)?;
 
         let url = format!("{}/v1/secrets/list", self.broker_url);
-        
+
         let response = self
             .agent
             .post(&url)
