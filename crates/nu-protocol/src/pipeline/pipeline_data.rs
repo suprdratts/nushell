@@ -7,6 +7,7 @@ use crate::{
     engine::{EngineState, Stack},
     shell_error::io::IoError,
 };
+use nu_seks::scrub_output;
 use std::{borrow::Cow, io::Write, ops::Deref, panic::Location};
 
 const LINE_ENDING_PATTERN: &[char] = &['\r', '\n'];
@@ -894,6 +895,16 @@ impl PipelineData {
     }
 }
 
+/// Write data to a destination, scrubbing any registered SEKS secrets.
+///
+/// This is the central output function that ensures secrets are never written
+/// to stdout/stderr. All text output passes through this function and gets
+/// scrubbed before being written.
+///
+/// # SEKS Security
+/// Registered secrets and their encoded variants (base64, hex) are replaced
+/// with `[REDACTED]` before output. This is defense-in-depth - not bulletproof,
+/// but raises the bar significantly for accidental token exposure.
 pub fn write_all_and_flush<T>(
     data: T,
     destination: &mut impl Write,
@@ -915,9 +926,29 @@ where
         }
     };
 
+    // SEKS: Scrub secrets from output before writing
+    // For text data (valid UTF-8), we scrub registered secrets.
+    // For binary data, we pass through unchanged to avoid corruption.
+    let scrubbed_data: Cow<[u8]> = match std::str::from_utf8(data.as_ref()) {
+        Ok(text) => {
+            let scrubbed = scrub_output(text);
+            if scrubbed.len() != text.len() || scrubbed != text {
+                // Data was modified by scrubbing
+                Cow::Owned(scrubbed.into_bytes())
+            } else {
+                // No secrets found, use original
+                Cow::Borrowed(data.as_ref())
+            }
+        }
+        Err(_) => {
+            // Binary data, pass through unchanged
+            Cow::Borrowed(data.as_ref())
+        }
+    };
+
     let span = span.unwrap_or(Span::unknown());
     const OUTPUT_CHUNK_SIZE: usize = 8192;
-    for chunk in data.as_ref().chunks(OUTPUT_CHUNK_SIZE) {
+    for chunk in scrubbed_data.chunks(OUTPUT_CHUNK_SIZE) {
         signals.check(&span)?;
         destination
             .write_all(chunk)

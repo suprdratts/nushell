@@ -4048,6 +4048,7 @@ dependencies = [
  "nu-cmd-extra",
  "nu-cmd-lang",
  "nu-cmd-plugin",
+ "nu-cmd-seks",
  "nu-command",
  "nu-engine",
  "nu-experimental",
@@ -4060,6 +4061,7 @@ dependencies = [
  "nu-plugin-engine",
  "nu-plugin-protocol",
  "nu-protocol",
+ "nu-seks",
  "nu-std",
  "nu-system",
  "nu-test-support",
@@ -4193,6 +4195,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nu-cmd-seks"
+version = "0.110.1"
+dependencies = [
+ "nu-engine",
+ "nu-protocol",
+ "nu-seks",
+]
+
+[[package]]
 name = "nu-color-config"
 version = "0.111.1"
 dependencies = [
@@ -4306,7 +4317,7 @@ dependencies = [
  "unicode-segmentation",
  "unicode-width 0.2.2",
  "update-informer",
- "ureq",
+ "ureq 3.0.12",
  "url",
  "uu_cp",
  "uu_mkdir",
@@ -4601,6 +4612,7 @@ dependencies = [
  "nu-experimental",
  "nu-glob",
  "nu-path",
+ "nu-seks",
  "nu-system",
  "nu-test-support",
  "nu-utils",
@@ -4619,6 +4631,19 @@ dependencies = [
  "web-time",
  "windows 0.62.2",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "nu-seks"
+version = "0.110.1"
+dependencies = [
+ "base64 0.22.1",
+ "once_cell",
+ "parking_lot",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "ureq 2.12.1",
 ]
 
 [[package]]
@@ -8764,7 +8789,25 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "ureq",
+ "ureq 3.0.12",
+]
+
+[[package]]
+name = "ureq"
+version = "2.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02d1a66277ed75f640d608235660df48c8e3c19f3b4edb6a263315626cc3c01d"
+dependencies = [
+ "base64 0.22.1",
+ "flate2",
+ "log",
+ "once_cell",
+ "rustls 0.23.28",
+ "rustls-pki-types",
+ "serde",
+ "serde_json",
+ "url",
+ "webpki-roots 0.26.8",
 ]
 
 [[package]]

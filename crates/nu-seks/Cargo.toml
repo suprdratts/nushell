@@ -1,0 +1,25 @@
+[package]
+name = "nu-seks"
+version = "0.110.1"
+authors = ["The Nushell Project Developers", "SEKS Project Contributors"]
+description = "SEKS (Secure Execution Kernel for Shells) - Security features for nushell"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/rotcsgame/seksh/tree/main/crates/nu-seks"
+
+[lib]
+bench = false
+
+[dependencies]
+base64 = { workspace = true }
+once_cell = "1.18"
+parking_lot = "0.12"
+ureq = { version = "2.9", features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+
+[lints]
+workspace = true
