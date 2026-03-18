@@ -2833,7 +2833,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tower-service",
- "webpki-roots",
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]
@@ -4118,7 +4118,7 @@ dependencies = [
  "percent-encoding",
  "reedline",
  "rstest",
- "strum",
+ "strum 0.28.0",
  "sysinfo",
  "tempfile",
  "unicode-segmentation",
@@ -4306,7 +4306,7 @@ dependencies = [
  "serde_urlencoded",
  "serde_yaml 0.9.34+deprecated",
  "sha2",
- "strum",
+ "strum 0.28.0",
  "sysinfo",
  "tabled",
  "tempfile",
@@ -4317,7 +4317,7 @@ dependencies = [
  "unicode-segmentation",
  "unicode-width 0.2.2",
  "update-informer",
- "ureq 3.0.12",
+ "ureq 3.2.0",
  "url",
  "uu_cp",
  "uu_mkdir",
@@ -4331,7 +4331,7 @@ dependencies = [
  "v_htmlescape",
  "wax",
  "web-time",
- "webpki-roots",
+ "webpki-roots 1.0.6",
  "which 8.0.2",
  "win_uds",
  "windows 0.62.2",
@@ -4623,7 +4623,7 @@ dependencies = [
  "rstest",
  "serde",
  "serde_json",
- "strum",
+ "strum 0.28.0",
  "strum_macros",
  "tempfile",
  "thiserror 2.0.18",
@@ -4637,7 +4637,7 @@ dependencies = [
 name = "nu-seks"
 version = "0.110.1"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "once_cell",
  "parking_lot",
  "pretty_assertions",
@@ -6670,7 +6670,7 @@ dependencies = [
  "itertools 0.14.0",
  "kasuari",
  "lru",
- "strum",
+ "strum 0.27.2",
  "thiserror 2.0.18",
  "unicode-segmentation",
  "unicode-truncate",
@@ -6712,7 +6712,7 @@ dependencies = [
  "itertools 0.14.0",
  "line-clipping",
  "ratatui-core",
- "strum",
+ "strum 0.27.2",
  "time",
  "unicode-segmentation",
  "unicode-width 0.2.2",
@@ -6817,7 +6817,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strip-ansi-escapes",
- "strum",
+ "strum 0.27.2",
  "thiserror 2.0.18",
  "unicase",
  "unicode-segmentation",
@@ -6946,7 +6946,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "wasm-streams",
  "web-sys",
- "webpki-roots",
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]
@@ -7911,6 +7911,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "strum"
+version = "0.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9628de9b8791db39ceda2b119bbe13134770b56c138ec1d3af810d045c04f9bd"
+
+[[package]]
 name = "strum_macros"
 version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8789,7 +8795,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "ureq 3.0.12",
+ "ureq 3.2.0",
 ]
 
 [[package]]
@@ -8798,16 +8804,16 @@ version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02d1a66277ed75f640d608235660df48c8e3c19f3b4edb6a263315626cc3c01d"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "flate2",
  "log",
  "once_cell",
- "rustls 0.23.28",
+ "rustls",
  "rustls-pki-types",
  "serde",
  "serde_json",
  "url",
- "webpki-roots 0.26.8",
+ "webpki-roots 0.26.11",
 ]
 
 [[package]]
@@ -8833,7 +8839,7 @@ dependencies = [
  "ureq-proto",
  "utf-8",
  "webpki-root-certs",
- "webpki-roots",
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]
@@ -9393,6 +9399,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "804f18a4ac2676ffb4e8b5b5fa9ae38af06df08162314f96a68d2a363e21a8ca"
 dependencies = [
  "rustls-pki-types",
+]
+
+[[package]]
+name = "webpki-roots"
+version = "0.26.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "521bc38abb08001b01866da9f51eb7c5d647a19260e00054a8c7fd5f9e57f7a9"
+dependencies = [
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]
