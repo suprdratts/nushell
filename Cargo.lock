@@ -2833,7 +2833,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tower-service",
- "webpki-roots",
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]
@@ -3755,6 +3755,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "mediatype"
+version = "0.19.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33746aadcb41349ec291e7f2f0a3aa6834d1d7c58066fb4b01f68efc4c4b7631"
+
+[[package]]
 name = "memchr"
 version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3900,15 +3906,15 @@ dependencies = [
 
 [[package]]
 name = "multipart-rs"
-version = "0.1.13"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64cae00e7e52aa5072342ef9a2ccd71669be913c2176a81a665b1f9cd79345f2"
+checksum = "eb1653328875ea3613bd4725fc09707d7f3ae7f07a4f0f48443a0d058a17638b"
 dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
+ "mediatype",
  "memchr",
- "mime",
  "uuid",
 ]
 
@@ -4317,7 +4323,7 @@ dependencies = [
  "unicode-segmentation",
  "unicode-width 0.2.2",
  "update-informer",
- "ureq 3.0.12",
+ "ureq 3.2.0",
  "url",
  "uu_cp",
  "uu_mkdir",
@@ -4331,7 +4337,7 @@ dependencies = [
  "v_htmlescape",
  "wax",
  "web-time",
- "webpki-roots",
+ "webpki-roots 1.0.6",
  "which 8.0.2",
  "win_uds",
  "windows 0.62.2",
@@ -4637,7 +4643,7 @@ dependencies = [
 name = "nu-seks"
 version = "0.110.1"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "once_cell",
  "parking_lot",
  "pretty_assertions",
@@ -6946,7 +6952,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "wasm-streams",
  "web-sys",
- "webpki-roots",
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]
@@ -8789,7 +8795,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "ureq 3.0.12",
+ "ureq 3.2.0",
 ]
 
 [[package]]
@@ -8798,16 +8804,16 @@ version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02d1a66277ed75f640d608235660df48c8e3c19f3b4edb6a263315626cc3c01d"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "flate2",
  "log",
  "once_cell",
- "rustls 0.23.28",
+ "rustls",
  "rustls-pki-types",
  "serde",
  "serde_json",
  "url",
- "webpki-roots 0.26.8",
+ "webpki-roots 0.26.11",
 ]
 
 [[package]]
@@ -8833,7 +8839,7 @@ dependencies = [
  "ureq-proto",
  "utf-8",
  "webpki-root-certs",
- "webpki-roots",
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]
@@ -9393,6 +9399,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "804f18a4ac2676ffb4e8b5b5fa9ae38af06df08162314f96a68d2a363e21a8ca"
 dependencies = [
  "rustls-pki-types",
+]
+
+[[package]]
+name = "webpki-roots"
+version = "0.26.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "521bc38abb08001b01866da9f51eb7c5d647a19260e00054a8c7fd5f9e57f7a9"
+dependencies = [
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]
