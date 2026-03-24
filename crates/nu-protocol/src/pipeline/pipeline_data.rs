@@ -5,7 +5,7 @@ use crate::{
     Range, ShellError, Signals, Span, Type, Value,
     ast::{Call, PathMember},
     engine::{EngineState, Stack},
-    shell_error::io::IoError,
+    shell_error::{generic::GenericError, io::IoError},
 };
 use nu_seks::scrub_output;
 use std::{borrow::Cow, io::Write, ops::Deref, panic::Location};
@@ -69,7 +69,8 @@ impl PipelineData {
     /// Returns a clone of the metadata if it exists.
     ///
     /// Note: This performs a deep clone of heap-allocated structures.
-    /// Use [`.metadata_ref()`](Self::metadata_ref) or [`.metadata_mut()`](Self::metadata_mut) to avoid unnecessary allocations.
+    /// Use [`.metadata_ref()`](Self::metadata_ref), [`.metadata_mut()`](Self::metadata_mut)
+    /// or [`.take_metadata()`](Self::take_metadata) to avoid unnecessary allocations.
     pub fn metadata(&self) -> Option<PipelineMetadata> {
         self.metadata_ref().cloned()
     }
@@ -91,6 +92,16 @@ impl PipelineData {
             PipelineData::Value(_, meta)
             | PipelineData::ListStream(_, meta)
             | PipelineData::ByteStream(_, meta) => meta.as_mut(),
+        }
+    }
+
+    /// Take the metadata out of pipeline if it exists.
+    pub fn take_metadata(&mut self) -> Option<PipelineMetadata> {
+        match self {
+            PipelineData::Empty => None,
+            PipelineData::Value(_, meta)
+            | PipelineData::ListStream(_, meta)
+            | PipelineData::ByteStream(_, meta) => meta.take(),
         }
     }
 
@@ -695,24 +706,30 @@ impl PipelineData {
                         match *val {
                             Range::IntRange(range) => {
                                 if range.is_unbounded() {
-                                    return Err(ShellError::GenericError {
-                                        error: "Cannot create range".into(),
-                                        msg: "Unbounded ranges are not allowed when converting to this format".into(),
-                                        span: Some(span),
-                                        help: Some("Consider using ranges with valid start and end point.".into()),
-                                        inner: vec![],
-                                    });
+                                    return Err(ShellError::Generic(
+                                        GenericError::new(
+                                            "Cannot create range",
+                                            "Unbounded ranges are not allowed when converting to this format",
+                                            span,
+                                        )
+                                        .with_help(
+                                            "Consider using ranges with valid start and end point.",
+                                        ),
+                                    ));
                                 }
                             }
                             Range::FloatRange(range) => {
                                 if range.is_unbounded() {
-                                    return Err(ShellError::GenericError {
-                                        error: "Cannot create range".into(),
-                                        msg: "Unbounded ranges are not allowed when converting to this format".into(),
-                                        span: Some(span),
-                                        help: Some("Consider using ranges with valid start and end point.".into()),
-                                        inner: vec![],
-                                    });
+                                    return Err(ShellError::Generic(
+                                        GenericError::new(
+                                            "Cannot create range",
+                                            "Unbounded ranges are not allowed when converting to this format",
+                                            span,
+                                        )
+                                        .with_help(
+                                            "Consider using ranges with valid start and end point.",
+                                        ),
+                                    ));
                                 }
                             }
                         }
